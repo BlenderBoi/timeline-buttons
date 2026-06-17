@@ -1,4 +1,7 @@
 import bpy
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+)
 
 
 def draw_player(self, context):
@@ -7,45 +10,30 @@ def draw_player(self, context):
     tool_settings = context.tool_settings
     screen = context.screen
 
-    if context.area.ui_type == "DOPESHEET":
-        layout.separator_spacer()
-
-        row = layout.row(align=True)
-
-        row.prop(tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
-        sub = row.row(align=True)
-        sub.active = tool_settings.use_keyframe_insert_auto
-        sub.popover(
-            panel="TIME_PT_auto_keyframing_Dopesheet",
-            text="",
+    if context.area.ui_type == "TIMELINE":
+        layout.separator()
+        icon_keytype = 'KEYTYPE_{:s}_VEC'.format(tool_settings.keyframe_type)
+        layout.popover(
+            panel="TIME_PT_keyframing_settings",
+            text_ctxt=i18n_contexts.id_windowmanager,
+            icon=icon_keytype,
         )
-
-        row = layout.row(align=True)
-        row.operator("screen.frame_jump", text="", icon="REW").end = False
-        row.operator("screen.keyframe_jump", text="", icon="PREV_KEYFRAME").next = False
-        if not screen.is_animation_playing:
-            if (
-                scene.sync_mode == "AUDIO_SYNC"
-                and context.preferences.system.audio_device == "JACK"
-            ):
-                row.scale_x = 2
-                row.operator("screen.animation_play", text="", icon="PLAY")
-                row.scale_x = 1
-            else:
-                row.operator(
-                    "screen.animation_play", text="", icon="PLAY_REVERSE"
-                ).reverse = True
-                row.operator("screen.animation_play", text="", icon="PLAY")
-        else:
-            row.scale_x = 2
-            row.operator("screen.animation_play", text="", icon="PAUSE")
-            row.scale_x = 1
-        row.operator("screen.keyframe_jump", text="", icon="NEXT_KEYFRAME").next = True
-        row.operator("screen.frame_jump", text="", icon="FF").end = True
-
     else:
         layout.separator_spacer()
 
+        layout.popover(
+            panel="TIME_PT_playback",
+            text="Playback",
+        )
+        layout.separator()
+        icon_keytype = 'KEYTYPE_{:s}_VEC'.format(tool_settings.keyframe_type)
+        layout.popover(
+            panel="TIME_PT_keyframing_settings",
+            text_ctxt=i18n_contexts.id_windowmanager,
+            icon=icon_keytype,
+        )
+        layout.separator()
+        
         row = layout.row(align=True)
         row.prop(tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
         sub = row.row(align=True)
@@ -54,6 +42,7 @@ def draw_player(self, context):
             panel="TIME_PT_auto_keyframing_Dopesheet",
             text="",
         )
+        row.separator()
 
         row = layout.row(align=True)
         row.operator("screen.frame_jump", text="", icon="REW").end = False
@@ -77,6 +66,19 @@ def draw_player(self, context):
             row.scale_x = 1
         row.operator("screen.keyframe_jump", text="", icon="NEXT_KEYFRAME").next = True
         row.operator("screen.frame_jump", text="", icon="FF").end = True
+
+        row.separator()
+        # Time jump
+        row = layout.row(align=True)
+        row.operator("screen.time_jump", text="", icon='FRAME_PREV').backward = True
+        row.operator("screen.time_jump", text="", icon='FRAME_NEXT').backward = False
+        row.popover(panel="TIME_PT_jump", text="")
+    
+        row.separator()
+        row = layout.row(align=True)
+        row.prop(tool_settings, "use_snap_playhead", text="")
+        sub = row.row(align=True)
+        sub.popover(panel="TIME_PT_playhead_snapping", text="")
 
 
 def draw_frame_range(self, context):
